@@ -20,21 +20,26 @@ from std_msgs.msg import String
 
 class Subscriber(Node):
 
-    def __init__(self, node_name:str, topic:str):
+    def __init__(self, node_name:str, topic:str, data):
         super().__init__(node_name)
         self.subscription = self.create_subscription(
             String, topic, self.listener_callback, 10)
         self.subscription  # prevent unused variable warning
+        self.data = data
 
     def listener_callback(self, msg):
-        #TODO: save data somewhere (wilson says list)
+        #TODO: save data somewhere (wilson says list) ig we're doing function
+        self.data(msg)
         self.get_logger().info('Recieved: "%s"' % msg.data)
 
+def example_recieve_data(msg):
+    # do something with data
+    pass
 
 def main(args=None):
     rclpy.init(args=args)
 
-    subscriber = Subscriber('sample_subscriber', 'topic')
+    subscriber = Subscriber('sample_subscriber', 'topic', example_recieve_data)
     rclpy.spin(subscriber)
 
     # Destroy the node explicitly
