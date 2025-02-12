@@ -20,37 +20,27 @@ from std_msgs.msg import String
 
 class Publisher(Node):
 
-    def __init__(self, name:str, topic:str):
+    def __init__(self, name:str, topic:str, data):
         super().__init__(name)
         self.publisher_ = self.create_publisher(String, topic, 10)
         timer_period = 0.5  # seconds
+        self.data = data
         self.timer = self.create_timer(timer_period, self.publish_data)
 
     def publish_data(self):
         msg = String()
-        msg.data = self.data
+        msg.data = self.data()
         self.publisher_.publish(msg)
         self.get_logger().info('Publishing: "%s"' % msg.data)
 
-    def update(self, data:dict):
-        self.data = str(data)
-
+def example_data():
+    return "hello this is some example data"
 
 def main(args=None):
     rclpy.init(args=args)
 
-    x = {'a' : 1, 'b' : 2, 'c' : 3}
-
-    publisher = Publisher('sample_subscriber', 'topic')
-    executor = rclpy.get_global_executor()
-    try:
-        executor.add_node(publisher)
-        while executor.context.ok():
-            publisher.update(x)
-            executor.spin_once()
-    finally:
-        executor.remove_node(publisher)
-
+    publisher = Publisher('sample_subscriber', 'topic', example_data)
+    rclpy.spin(publisher)
     # Destroy the node explicitly
     # (optional - otherwise it will be done automatically
     # when the garbage collector destroys the node object)
