@@ -5,12 +5,14 @@ The publisher part of code publishes the data as a node, and the subscriber port
 
 How to publish data:
 
-Step 1: In the main function, replace the x (line 42) with a codes to get the data to publish (from imu for example)
+Change the example data method in the Publisher class so that it does what it should do (returning the appropriate data).
 
-Step 2: In the try except part, update the data
+Parameters that could be adjusted:
 
-How subscriber works:
+Line 26: timer_period = 0.5
 
-Step 1: Create a way to receive the information (a list, for example)
+could change the interval to suit the purpose
 
-Step 2: Receive the data and save it
+How subscriber code works:
+
+It automatically receives the data published by publisher part. Users could change the example_recieve_data (ignore this typo) method in the subscriber class to deal with the data in an appropriate way.
