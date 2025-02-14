@@ -1,22 +1,37 @@
 # Publisher and Subscriber
 
-This is the initial attempt to send and receive data which works partly.
-The publisher part of code publishes the data as a node, and the subscriber portion could subscribe to the data.
+This is the initial attempt to send and receive data.
+The publisher publishes data through a topic that a subscriber may subscribe to in order to recieve the data.
 
 
 ## Features
 
-- Publish data with ros2
-- Receive data with ros2
+- Send data with Ros2
+- Receive data with Ros2
 - Could deal with different types of data by customizing function
 
-## How to publish data:
+## Publisher Usage:
 
-Change the example data method in the Publisher class so that it does what it should do (returning the appropriate data).
+```python
+rclpy.init(args=args)
 
-Parameters that could be adjusted:
-timer_period: could change the interval to suit the purpose
+publisher = Publisher('sample_publisher', 'topic', example_data_func)
+rclpy.spin(publisher)
 
-## How subscriber code works:
+publisher.destroy_node() # optional
+rclpy.shutdown()
+```
+Where `example_data_func` is the function that will return the data to be sent when called.
 
-It automatically receives the data published by publisher part. Users could change the example_recieve_data (ignore this typo) method in the subscriber class to deal with the data in an appropriate way.
+## Subscriber Usage:
+
+```python
+rclpy.init(args=args)
+
+subscriber = Subscriber('sample_subscriber', 'topic', example_recieve_func)
+rclpy.spin(subscriber)
+ 
+subscriber.destroy_node() # optional
+rclpy.shutdown()
+```
+Where `example_recieve_func` is the function that will handle the data recieved when called.
