@@ -13,39 +13,65 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
+import threading
 import rclpy
 from rclpy.node import Node
-
 from std_msgs.msg import String
 
 class Publisher(Node):
-
-    def __init__(self, name:str, topic:str, data):
+    def __init__(self, name:str, topic:str, data:dict, lock:threading.Lock):
         super().__init__(name)
         self.publisher_ = self.create_publisher(String, topic, 10)
-        timer_period = 0.5  # seconds
-        self.data = data
+        self.data = data # dictionary storing data to be sent
+        self.lock = lock # ensure concurrent modification doesn't happen
+        timer_period = 0.5  # seconds between each send
         self.timer = self.create_timer(timer_period, self.publish_data)
 
     def publish_data(self):
         msg = String()
-        msg.data = self.data()
-        self.publisher_.publish(msg)
-        self.get_logger().info('Publishing: "%s"' % msg.data)
+        with self.lock:
+            # convert data to JSON
+            msg.data = json.dumps(self.data)
+            # publish message
+            self.publisher_.publish(msg)
+            self.get_logger().info('Publishing: "%s"' % msg.data)
 
-def example_data():
-    return "hello this is some example data"
+class PublishThread(threading.Thread):
+    def __init__(self, name:str, topic:str, data:dict, lock:threading.Lock):
+        rclpy.init(args=None)
+        super(PublishThread, self).__init__()
+
+        # data to be published
+        self.data = data
+        
+        # publisher to use for publishing data
+        self.publisher = Publisher(name, topic, self.data, lock)
+
+        self.done = False
+        self.start() # start thread
+
+    def stop(self):
+        self.publisher.destroy_node()
+        rclpy.shutdown()
+        self.done = True
+        self.join()
+
+    def run(self):
+        while not self.done:
+            if not self.data:
+                # dictionary is empty
+                continue
+            else:
+                # publish once
+                rclpy.spin_once(self.publisher)
+
+        # Publish stop message when thread exits.
+        self.publisher.publish_data("stop")
+
 
 def main(args=None):
-    rclpy.init(args=args)
-
-    publisher = Publisher('sample_subscriber', 'topic', example_data)
-    rclpy.spin(publisher)
-    # Destroy the node explicitly
-    # (optional - otherwise it will be done automatically
-    # when the garbage collector destroys the node object)
-    publisher.destroy_node()
-    rclpy.shutdown()
+    pass
 
 
 if __name__ == '__main__':
